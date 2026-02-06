@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Products from './pages/Products';
 import RawMaterials from './pages/RawMaterials';
 import Recipe from './pages/Recipe';
+import Planning from './pages/Planning';
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
           <Link to="/" className="hover:text-gray-300 font-bold">Autoflex Control</Link>
           <Link to="/products" className="hover:text-gray-300">Produtos</Link>
           <Link to="/raw-materials" className="hover:text-gray-300 text-gray-500 cursor-not-allowed">Matérias-Primas</Link>
-          <Link to="/planning" className="hover:text-gray-300 text-gray-500 cursor-not-allowed">Planejamento</Link>
+          <Link to="/planning" className="hover:text-yellow-300 transition font-bold text-yellow-400">Planejamento</Link>
         </div>
       </nav>
 
@@ -23,6 +24,7 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/raw-materials" element={<RawMaterials />} />
           <Route path="/recipe/:productId" element={<Recipe />} />
+          <Route path="/planning" element={<Planning />} />
         </Routes>
       </div>
     </BrowserRouter>
