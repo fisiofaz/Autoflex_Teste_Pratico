@@ -10,8 +10,9 @@ export default function Recipe() {
 
     const [selectedMaterial, setSelectedMaterial] = useState('');
     const [quantity, setQuantity] = useState('');
+    
 
-    // 1. CARREGAR DADOS INICIAIS (Protegido dentro do useEffect)
+    // CARREGAR DADOS INICIAIS (Protegido dentro do useEffect)
     useEffect(() => {
         const loadInitialData = async () => {
             try {
@@ -37,7 +38,7 @@ export default function Recipe() {
         loadInitialData();
     }, [productId]); // Roda sempre que o ID na URL mudar
 
-    // 2. ADICIONAR INGREDIENTE
+    // ADICIONAR INGREDIENTE
     async function handleAddIngredient(e) {
         e.preventDefault();
         if(!selectedMaterial || !quantity) return;
@@ -61,6 +62,21 @@ export default function Recipe() {
         } catch (error) {
             console.error(error);
             alert("Erro ao adicionar ingrediente! Verifique o console.");
+        }
+    }
+
+    async function handleRemove(compositionId) {
+        if(confirm("Remover este ingrediente?")) {
+            try {
+                await api.delete(`/compositions/${compositionId}`);
+                // Recarrega a lista
+                const compResponse = await api.get('/compositions');
+                const myRecipe = compResponse.data.filter(c => c.product.id == productId);
+                setRecipe(myRecipe);
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao remover.");
+            }
         }
     }
 
@@ -119,9 +135,17 @@ export default function Recipe() {
                     ) : (
                         <ul className="divide-y divide-gray-200">
                             {recipe.map(item => (
-                                <li key={item.id} className="py-3 flex justify-between">
-                                    <span className="font-medium">{item.rawMaterial.name}</span>
-                                    <span className="text-gray-600 font-bold">{item.quantityRequired} un.</span>
+                                <li key={item.id} className="py-3 flex justify-between items-center">
+                                    <div>
+                                        <span className="font-medium block">{item.rawMaterial.name}</span>
+                                        <span className="text-sm text-gray-500">Qtd: {item.quantityRequired}</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleRemove(item.id)}
+                                        className="text-red-600 hover:text-red-800 text-sm font-bold border border-red-200 px-2 py-1 rounded"
+                                    >
+                                        Remover
+                                    </button>
                                 </li>
                             ))}
                         </ul>
