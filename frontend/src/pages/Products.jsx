@@ -7,42 +7,54 @@ export default function Products() {
     const [products, setProducts] = useState([]);
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
+    const [editingId, setEditingId] = useState(null);
 
     // BUSCAR DADOS 
     useEffect(() => {
-        // Definimos a função AQUI DENTRO para evitar erros do React
         const fetchProducts = async () => {
             try {
                 const response = await api.get('/products');
                 setProducts(response.data);
             } catch (error) {
                 console.error("Erro ao buscar produtos:", error);
-                // Não colocamos alert aqui para não spamar o usuário se a conexão cair
             }
         };
 
         fetchProducts(); // Chamamos ela imediatamente
     }, []); 
 
+    async function loadProducts() {
+        try {
+            const response = await api.get('/products');
+            setProducts(response.data);
+        } catch (error) {
+            console.error("Erro ao carregar:", error);
+        }
+    }
+
     // 3. SALVAR
     async function handleSubmit(event) {
         event.preventDefault();
 
         try {
-            await api.post('/products', {
-                name: name,
-                price: parseFloat(price)
-            });
+           if (editingId) {
+                // EDITAR (PUT)
+                await api.put(`/products/${editingId}`, {
+                    name,
+                    price: parseFloat(price)
+                });
+                alert("Produto atualizado!");
+            } else {
+                // CRIAR (POST)
+                await api.post('/products', {
+                    name,
+                    price: parseFloat(price)
+                });
+                alert("Produto criado!");
+            }
             
-            // Limpa campos
-            setName('');
-            setPrice('');
-            
-            // Atualiza a lista manualmente chamando a API de novo
-            const response = await api.get('/products');
-            setProducts(response.data);
-            
-            alert("Produto salvo com sucesso!");
+            cleanForm();
+            loadProducts();
         } catch (error) {
             console.error("Erro ao salvar:", error);
             alert("Erro ao salvar produto!");
@@ -51,17 +63,27 @@ export default function Products() {
 
     // DELETAR
     async function handleDelete(id) {
-        if(confirm("Tem certeza que quer excluir?")) {
+        if(confirm("Tem certeza? Isso apagará também a receita deste produto.")) {
             try {
                 await api.delete(`/products/${id}`);
-                // Atualiza a lista
-                const response = await api.get('/products');
-                setProducts(response.data);
+                loadProducts();
             } catch (error) {
                 console.error("Erro ao deletar:", error);
                 alert("Erro ao excluir produto!");
             }
         }
+    }
+
+    function handleEdit(product) {
+        setEditingId(product.id);
+        setName(product.name);
+        setPrice(product.price);
+    }
+
+    function cleanForm() {
+        setEditingId(null);
+        setName('');
+        setPrice('');
     }
 
     return (
@@ -91,9 +113,12 @@ export default function Products() {
                         required 
                     />
                 </div>
-                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
-                    Salvar
-                </button>
+                <div className="flex gap-2">
+                    <button type="submit" className={`px-4 py-2 rounded-md text-white transition ${editingId ? 'bg-orange-500' : 'bg-indigo-600'}`}>
+                        {editingId ? 'Atualizar' : 'Salvar'}
+                    </button>
+                    {editingId && <button type="button" onClick={cleanForm} className="bg-gray-400 text-white px-4 py-2 rounded-md">Cancelar</button>}
+                </div>
             </form>
 
             {/* LISTA */}
@@ -118,6 +143,12 @@ export default function Products() {
                                     >
                                         Receita
                                     </Link>
+                                    <button 
+                                        onClick={() => handleEdit(product)} 
+                                        className="text-blue-600 hover:text-blue-900 font-bold"
+                                    >
+                                        Editar
+                                    </button>
                                     <button 
                                         onClick={() => handleDelete(product.id)}
                                         className="text-red-600 hover:text-red-900 font-bold"

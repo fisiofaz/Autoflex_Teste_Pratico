@@ -24,6 +24,34 @@ public class ProductResource {
         return Response.status(Response.Status.CREATED).entity(product).build();
     }
 
-    // ... Depois adicionamos Update e Delete se der tempo, o foco é o Create e List
-    // agora
+    // ... Depois adicionamos Update 
+    
+    // --- ADICIONE ISTO ---
+
+    @PUT
+    @Path("/{id}")
+    @Transactional
+    public Response update(@PathParam("id") Long id, Product dto) {
+        Product entity = Product.findById(id);
+        if (entity == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // Atualiza campos
+        entity.name = dto.name;
+        entity.price = dto.price;
+
+        return Response.ok(entity).build();
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Transactional
+    public Response delete(@PathParam("id") Long id) {
+        boolean deleted = Product.deleteById(id);
+        if (!deleted) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.noContent().build();
+    }
 }
